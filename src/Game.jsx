@@ -62,7 +62,7 @@ export default function Game() {
         // Speed variables
         this.speedMultiplier = 1;
         this.baseBulletSpeed = 400;
-        this.baseEnemySpeed = 100;
+        this.baseEnemySpeed = 50;
 
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
