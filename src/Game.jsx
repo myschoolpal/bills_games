@@ -1,9 +1,10 @@
 // src/Game.jsx
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 
 export default function Game() {
   const gameRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
   useEffect(() => {
     if (gameRef.current) return; // don’t recreate on React re-render
@@ -289,10 +290,11 @@ export default function Game() {
     }
 
     // Initialize Phaser Game
+    const mobile = window.innerWidth <= 600;
     gameRef.current = new Phaser.Game({
       type: Phaser.AUTO,
       width: window.innerWidth,
-      height: window.innerHeight,
+      height: mobile ? window.innerHeight * 0.8 : window.innerHeight,
       parent: 'phaser-container',
       scale: {
         mode: Phaser.Scale.FIT,
@@ -309,7 +311,10 @@ export default function Game() {
     });
 
     const resize = () => {
-      gameRef.current.scale.resize(window.innerWidth, window.innerHeight);
+      const mobileResize = window.innerWidth <= 600;
+      setIsMobile(mobileResize);
+      const newHeight = mobileResize ? window.innerHeight * 0.8 : window.innerHeight;
+      gameRef.current.scale.resize(window.innerWidth, newHeight);
     };
     window.addEventListener('resize', resize);
 
@@ -330,14 +335,29 @@ export default function Game() {
   };
 
   return (
-    <div className="game-wrapper">
-      <div className="bg-options">
+    <div
+      className="game-wrapper"
+      style={{
+        flexDirection: isMobile ? 'column-reverse' : 'row',
+        alignItems: isMobile ? 'center' : 'flex-start',
+      }}
+    >
+      <div
+        className="bg-options"
+        style={{
+          flexDirection: isMobile ? 'row' : 'column',
+          margin: isMobile ? '10px 0' : '0 20px 0 0',
+        }}
+      >
         <button onClick={() => changeBackground('background1')}>BG1</button>
         <button onClick={() => changeBackground('background2')}>BG2</button>
         <button onClick={() => changeBackground('background3')}>BG3</button>
         <button onClick={() => changeBackground('background4')}>BG4</button>
       </div>
-      <div id="phaser-container" />
+      <div
+        id="phaser-container"
+        style={{ width: '100%', height: isMobile ? '80vh' : '100vh' }}
+      />
     </div>
   );
 }
