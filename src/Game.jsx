@@ -40,7 +40,8 @@ export default function Game() {
         this.enemies = this.physics.add.group({ defaultKey: 'enemy', maxSize: 20 });
 
         // Score Tracking
-        this.coinCount = 0;
+        this.killCount = 0;
+        this.missedCount = 0;
         this.highScore = parseInt(localStorage.getItem('highScore'), 10) || 0;
 
         // High Score display (top left)
@@ -49,8 +50,11 @@ export default function Game() {
           color: '#ffffff',
         });
 
-        this.add.image(760, 20, 'coin').setScale(0.5);
-        this.coinText = this.add.text(780, 10, '0', {
+        this.killText = this.add.text(650, 10, 'Kill Count: 0', {
+          fontSize: '20px',
+          color: '#ffffff',
+        });
+        this.missedText = this.add.text(650, 30, 'Missed Count: 0', {
           fontSize: '20px',
           color: '#ffffff',
         });
@@ -65,12 +69,38 @@ export default function Game() {
         this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         // Enemy Spawn Timer
-        this.time.addEvent({
+        this.spawnTimer = this.time.addEvent({
           delay: 1000,
           callback: this.spawnEnemy,
           callbackScope: this,
           loop: true,
+          paused: true,
         });
+
+        // Start Button and Game Over Text
+        this.startText = this.add
+          .text(400, 300, 'START', {
+            fontSize: '32px',
+            fontFamily: 'monospace',
+            backgroundColor: '#000',
+            color: '#ffff00',
+            padding: { x: 10, y: 5 },
+          })
+          .setOrigin(0.5)
+          .setInteractive()
+          .on('pointerdown', () => this.startGame());
+
+        this.gameOverText = this.add
+          .text(400, 250, 'GAME OVER', {
+            fontSize: '48px',
+            fontFamily: 'monospace',
+            color: '#ff0000',
+          })
+          .setOrigin(0.5)
+          .setVisible(false);
+
+        this.physics.pause();
+        this.state = 'START';
 
         // Overlaps
         this.physics.add.overlap(
@@ -91,6 +121,8 @@ export default function Game() {
       }
 
       update(time, delta) {
+        if (this.state !== 'PLAYING') return;
+
         // PLAYER MOVEMENT
         const speed = 200;
         this.player.setVelocity(0);
@@ -132,6 +164,8 @@ export default function Game() {
               enemy.setActive(false);
               enemy.setVisible(false);
               enemy.body.enable = false;
+              this.missedCount += 1;
+              this.missedText.setText(`Missed Count: ${this.missedCount}`);
             }
           }
         });
@@ -150,6 +184,7 @@ export default function Game() {
       }
 
       spawnEnemy() {
+        if (this.state !== 'PLAYING') return;
         const x = Phaser.Math.Between(50, 750);
         const enemy = this.enemies.get(x, -50);
 
@@ -179,11 +214,11 @@ export default function Game() {
           onComplete: () => coin.destroy(),
         });
 
-        this.coinCount += 1;
-        this.coinText.setText(String(this.coinCount));
+        this.killCount += 1;
+        this.killText.setText(`Kill Count: ${this.killCount}`);
 
-        if (this.coinCount > this.highScore) {
-          this.highScore = this.coinCount;
+        if (this.killCount > this.highScore) {
+          this.highScore = this.killCount;
           this.highScoreText.setText(`High Score: ${this.highScore}`);
           localStorage.setItem('highScore', String(this.highScore));
         }
@@ -198,13 +233,36 @@ export default function Game() {
         enemy.body.enable = false;
 
         // Save high score at end of game
-        if (this.coinCount > this.highScore) {
-          this.highScore = this.coinCount;
+        if (this.killCount > this.highScore) {
+          this.highScore = this.killCount;
           localStorage.setItem('highScore', String(this.highScore));
+          this.highScoreText.setText(`High Score: ${this.highScore}`);
         }
 
-        // e.g. reduce health, restart scene, or game over
-        this.scene.restart();
+        this.endGame();
+      }
+
+      startGame() {
+        this.state = 'PLAYING';
+        this.physics.resume();
+        this.spawnTimer.paused = false;
+        this.startText.setVisible(false);
+        this.gameOverText.setVisible(false);
+        this.killCount = 0;
+        this.missedCount = 0;
+        this.killText.setText('Kill Count: 0');
+        this.missedText.setText('Missed Count: 0');
+        this.speedMultiplier = 1;
+      }
+
+      endGame() {
+        this.state = 'GAME_OVER';
+        this.physics.pause();
+        this.spawnTimer.paused = true;
+        this.bullets.clear(true, true);
+        this.enemies.clear(true, true);
+        this.gameOverText.setVisible(true);
+        this.startText.setText('RESTART').setVisible(true);
       }
     }
 
