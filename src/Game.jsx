@@ -18,6 +18,7 @@ export default function Game() {
         this.load.image('player', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
         this.load.image('bullet', 'https://labs.phaser.io/assets/sprites/bullet.png');
         this.load.image('enemy', 'https://labs.phaser.io/assets/sprites/evil-bunny.png');
+        this.load.image('coin', 'https://labs.phaser.io/assets/sprites/coin.png');
       }
 
       create() {
@@ -37,6 +38,14 @@ export default function Game() {
 
         // Enemies Pool
         this.enemies = this.physics.add.group({ defaultKey: 'enemy', maxSize: 20 });
+
+        // Coin Counter
+        this.coinCount = 0;
+        this.add.image(760, 20, 'coin').setScale(0.5);
+        this.coinText = this.add.text(780, 10, '0', {
+          fontSize: '20px',
+          color: '#ffffff',
+        });
 
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -148,8 +157,17 @@ export default function Game() {
         enemy.setActive(false);
         enemy.setVisible(false);
         enemy.body.enable = false;
+        const coin = this.add.image(enemy.x, enemy.y, 'coin').setScale(0.5);
+        this.tweens.add({
+          targets: coin,
+          y: coin.y - 50,
+          alpha: 0,
+          duration: 500,
+          onComplete: () => coin.destroy(),
+        });
 
-        // e.g. increment score, etc.
+        this.coinCount += 1;
+        this.coinText.setText(String(this.coinCount));
       }
 
       handlePlayerEnemyCollision(player, enemy) {
