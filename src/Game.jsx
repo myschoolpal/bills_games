@@ -39,13 +39,26 @@ export default function Game() {
         // Enemies Pool
         this.enemies = this.physics.add.group({ defaultKey: 'enemy', maxSize: 20 });
 
-        // Coin Counter
+        // Score Tracking
         this.coinCount = 0;
+        this.highScore = parseInt(localStorage.getItem('highScore'), 10) || 0;
+
+        // High Score display (top left)
+        this.highScoreText = this.add.text(10, 10, `High Score: ${this.highScore}`, {
+          fontSize: '20px',
+          color: '#ffffff',
+        });
+
         this.add.image(760, 20, 'coin').setScale(0.5);
         this.coinText = this.add.text(780, 10, '0', {
           fontSize: '20px',
           color: '#ffffff',
         });
+
+        // Speed variables
+        this.speedMultiplier = 1;
+        this.baseBulletSpeed = 400;
+        this.baseEnemySpeed = 100;
 
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -102,7 +115,7 @@ export default function Game() {
         // MANUAL BULLET MOVEMENT (if not using physics velocity)
         this.bullets.children.each((bullet) => {
           if (bullet.active) {
-            bullet.y -= 400 * (delta / 1000);
+            bullet.y -= this.baseBulletSpeed * this.speedMultiplier * (delta / 1000);
             if (bullet.y < -50) {
               bullet.setActive(false);
               bullet.setVisible(false);
@@ -114,7 +127,7 @@ export default function Game() {
         // MANUAL ENEMY MOVEMENT (if not using physics velocity)
         this.enemies.children.each((enemy) => {
           if (enemy.active) {
-            enemy.y += 100 * (delta / 1000);
+            enemy.y += this.baseEnemySpeed * this.speedMultiplier * (delta / 1000);
             if (enemy.y > 650) {
               enemy.setActive(false);
               enemy.setVisible(false);
@@ -131,7 +144,7 @@ export default function Game() {
           bullet.enableBody(true, this.player.x, this.player.y - 20, true, true);
           bullet.setScale(0.5);
           // If you want physics-driven movement, use this:
-          bullet.setVelocityY(-400);
+          bullet.setVelocityY(-this.baseBulletSpeed * this.speedMultiplier);
           // If you prefer manual update (as above), skip setVelocityY.
         }
       }
@@ -144,7 +157,7 @@ export default function Game() {
           enemy.enableBody(true, x, -50, true, true);
           enemy.setScale(0.5);
           // Either physics velocity:
-          enemy.setVelocityY(100);
+          enemy.setVelocityY(this.baseEnemySpeed * this.speedMultiplier);
           // Or rely on manual movement in update().
         }
       }
@@ -168,12 +181,27 @@ export default function Game() {
 
         this.coinCount += 1;
         this.coinText.setText(String(this.coinCount));
+
+        if (this.coinCount > this.highScore) {
+          this.highScore = this.coinCount;
+          this.highScoreText.setText(`High Score: ${this.highScore}`);
+          localStorage.setItem('highScore', String(this.highScore));
+        }
+
+        // Speed up game each time an enemy is destroyed
+        this.speedMultiplier *= 1.05;
       }
 
       handlePlayerEnemyCollision(player, enemy) {
         enemy.setActive(false);
         enemy.setVisible(false);
         enemy.body.enable = false;
+
+        // Save high score at end of game
+        if (this.coinCount > this.highScore) {
+          this.highScore = this.coinCount;
+          localStorage.setItem('highScore', String(this.highScore));
+        }
 
         // e.g. reduce health, restart scene, or game over
         this.scene.restart();
