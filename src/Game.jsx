@@ -27,7 +27,9 @@ export default function Game() {
 
       create() {
         // Background
-        this.background = this.add.image(400, 300, 'background1');
+        this.background = this.add.image(0, 0, 'background1');
+        this.background.setOrigin(0, 0);
+        this.background.setDisplaySize(this.scale.width, this.scale.height);
 
         // Player Setup
         this.player = this.physics.add.sprite(400, 500, 'player');
@@ -285,6 +287,7 @@ export default function Game() {
       changeBackground(key) {
         if (this.background) {
           this.background.setTexture(key);
+          this.background.setDisplaySize(this.scale.width, this.scale.height);
         }
       }
     }
@@ -315,6 +318,10 @@ export default function Game() {
       setIsMobile(mobileResize);
       const newHeight = mobileResize ? window.innerHeight * 0.8 : window.innerHeight;
       gameRef.current.scale.resize(window.innerWidth, newHeight);
+      const scene = gameRef.current.scene.keys['MainScene'];
+      if (scene && scene.background) {
+        scene.background.setDisplaySize(window.innerWidth, newHeight);
+      }
     };
     window.addEventListener('resize', resize);
 
@@ -356,7 +363,7 @@ export default function Game() {
       </div>
       <div
         id="phaser-container"
-        style={{ width: '100%', height: isMobile ? '80vh' : '100vh' }}
+        style={{ width: '100vw', height: isMobile ? '80vh' : '100vh' }}
       />
     </div>
   );
