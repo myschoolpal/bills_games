@@ -47,6 +47,11 @@
   align-items: flex-start;
 }
 
+#phaser-container {
+  flex: 1;
+  height: 100vh;
+}
+
 .bg-options {
   display: flex;
   flex-direction: column;
@@ -55,4 +60,20 @@
 
 .bg-options button {
   margin-bottom: 8px;
+}
+
+@media (max-width: 600px) {
+  .game-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bg-options {
+    flex-direction: row;
+    margin: 10px 0;
+  }
+
+  .bg-options button {
+    margin: 0 4px;
+  }
 }
