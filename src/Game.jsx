@@ -14,7 +14,10 @@ export default function Game() {
       }
 
       preload() {
-        this.load.image('background', 'https://labs.phaser.io/assets/skies/space3.png');
+        this.load.image('background1', 'https://labs.phaser.io/assets/skies/space3.png');
+        this.load.image('background2', 'https://labs.phaser.io/assets/skies/nebula.jpg');
+        this.load.image('background3', 'https://labs.phaser.io/assets/skies/deepblue.png');
+        this.load.image('background4', 'https://labs.phaser.io/assets/skies/starfield.jpg');
         this.load.image('player', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
         this.load.image('bullet', 'https://labs.phaser.io/assets/sprites/bullet.png');
         this.load.image('enemy', 'https://labs.phaser.io/assets/sprites/evil-bunny.png');
@@ -23,7 +26,7 @@ export default function Game() {
 
       create() {
         // Background
-        this.add.image(400, 300, 'background');
+        this.background = this.add.image(400, 300, 'background1');
 
         // Player Setup
         this.player = this.physics.add.sprite(400, 500, 'player');
@@ -50,11 +53,11 @@ export default function Game() {
           color: '#ffffff',
         });
 
-        this.killText = this.add.text(650, 10, 'Kill Count: 0', {
+        this.killText = this.add.text(620, 10, 'Kill Count: 0', {
           fontSize: '20px',
           color: '#ffffff',
         });
-        this.missedText = this.add.text(650, 30, 'Missed Count: 0', {
+        this.missedText = this.add.text(620, 30, 'Missed Count: 0', {
           fontSize: '20px',
           color: '#ffffff',
         });
@@ -264,6 +267,12 @@ export default function Game() {
         this.gameOverText.setVisible(true);
         this.startText.setText('RESTART').setVisible(true);
       }
+
+      changeBackground(key) {
+        if (this.background) {
+          this.background.setTexture(key);
+        }
+      }
     }
 
     // Initialize Phaser Game
@@ -288,5 +297,24 @@ export default function Game() {
     };
   }, []);
 
-  return <div id="phaser-container" />;
+  const changeBackground = (key) => {
+    if (gameRef.current) {
+      const scene = gameRef.current.scene.keys['MainScene'];
+      if (scene && scene.changeBackground) {
+        scene.changeBackground(key);
+      }
+    }
+  };
+
+  return (
+    <div className="game-wrapper">
+      <div className="bg-options">
+        <button onClick={() => changeBackground('background1')}>BG1</button>
+        <button onClick={() => changeBackground('background2')}>BG2</button>
+        <button onClick={() => changeBackground('background3')}>BG3</button>
+        <button onClick={() => changeBackground('background4')}>BG4</button>
+      </div>
+      <div id="phaser-container" />
+    </div>
+  );
 }
