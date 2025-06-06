@@ -69,7 +69,20 @@ export default function Game() {
 
         // Input
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.keySpace = this.input.keyboard.addKey(
+          Phaser.Input.Keyboard.KeyCodes.SPACE
+        );
+
+        // Touch/Pointer controls for mobile
+        this.input.on('pointermove', (pointer) => {
+          if (this.state !== 'PLAYING') return;
+          this.player.x = Phaser.Math.Clamp(pointer.x, 0, this.scale.width);
+          this.player.y = Phaser.Math.Clamp(pointer.y, 0, this.scale.height);
+        });
+
+        this.input.on('pointerdown', () => {
+          if (this.state === 'PLAYING') this.shootBullet();
+        });
 
         // Enemy Spawn Timer
         this.spawnTimer = this.time.addEvent({
@@ -278,9 +291,13 @@ export default function Game() {
     // Initialize Phaser Game
     gameRef.current = new Phaser.Game({
       type: Phaser.AUTO,
-      width: 800,
-      height: 600,
+      width: window.innerWidth,
+      height: window.innerHeight,
       parent: 'phaser-container',
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+      },
       physics: {
         default: 'arcade',
         arcade: {
@@ -291,9 +308,15 @@ export default function Game() {
       scene: MainScene,
     });
 
+    const resize = () => {
+      gameRef.current.scale.resize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', resize);
+
     return () => {
       gameRef.current.destroy(true);
       gameRef.current = null;
+      window.removeEventListener('resize', resize);
     };
   }, []);
 
