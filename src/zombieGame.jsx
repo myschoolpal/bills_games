@@ -9,11 +9,12 @@ const HEIGHT = GRID_H * TILE;
 const CASTLE_POS = { x: WIDTH / 2, y: HEIGHT / 2 };
 
 /** Data tables */
+// Increase unit damage so most zombies fall after roughly three hits
 const towerData = {
-  archer: { range: 120, damage: 8, reload: 60, color: 'green' },
-  cannon: { range: 110, damage: 15, reload: 80, splash: 30, color: 'orange' },
-  fire: { range: 70, damage: 6, reload: 90, burn: true, color: 'red' },
-  sniper: { range: 200, damage: 25, reload: 120, color: 'purple' },
+  archer: { range: 120, damage: 10, reload: 60, color: 'green' },
+  cannon: { range: 110, damage: 20, reload: 80, splash: 30, color: 'orange' },
+  fire: { range: 70, damage: 10, reload: 90, burn: true, color: 'red' },
+  sniper: { range: 200, damage: 40, reload: 120, color: 'purple' },
 };
 
 const zombieData = {
