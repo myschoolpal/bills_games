@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './App.css';
 import Game from './Game';
 import CastleDefence from './CastleDefence.jsx';
+import ZombieGame from './zombieGame.jsx';
 
 function App() {
   const [page, setPage] = useState('home');
@@ -33,6 +34,17 @@ function App() {
               Castle Defence Game
             </a>
           </li>
+          <li>
+            <a
+              href="#zombie-game"
+              onClick={(e) => {
+                e.preventDefault();
+                setPage('zombie-game');
+              }}
+            >
+              Zombie Game
+            </a>
+          </li>
         </ul>
       </div>
     );
@@ -51,6 +63,15 @@ function App() {
       <div>
         <button onClick={() => setPage('home')}>Back to Home</button>
         <CastleDefence />
+      </div>
+    );
+  }
+
+  if (page === 'zombie-game') {
+    return (
+      <div>
+        <button onClick={() => setPage('home')}>Back to Home</button>
+        <ZombieGame />
       </div>
     );
   }
