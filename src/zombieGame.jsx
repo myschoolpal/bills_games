@@ -59,7 +59,7 @@ function distance(a, b) {
 export default function CastleDefenders() {
   const canvasRef = useRef(null);
   const [coins, setCoins] = useState(20);
-  const [wave, setWave] = useState(0);
+  const [wave, setWave] = useState(1);
   const [castleHP, setCastleHP] = useState(100);
   const [towers, setTowers] = useState([]); // {id,type,level,x,y,cooldown,disabled}
   const [zombies, setZombies] = useState([]); // {id,type,x,y,hp,damage,speed}
@@ -68,6 +68,7 @@ export default function CastleDefenders() {
   const [selected, setSelected] = useState(null);
   const [modifier, setModifier] = useState(null); // 'fog','haste',null
   const [repairs, setRepairs] = useState(0);
+  const [powerCost, setPowerCost] = useState(27); // special power cost (30 - 3)
   const [speed, setSpeed] = useState(1);
   const speedRef = useRef(1);
   speedRef.current = speed;
@@ -78,19 +79,18 @@ export default function CastleDefenders() {
 
   function startWave() {
     if (waveActive) return;
-    const nextWave = wave + 1;
-    setWave(nextWave);
     setWaveActive(true);
     setModifier(Math.random() < 0.33 ? 'fog' : Math.random() < 0.5 ? 'haste' : null);
-    if (nextWave >= 4 && !unlockedRef.current.includes('runner')) unlockedRef.current.push('runner');
-    if (nextWave >= 7 && !unlockedRef.current.includes('armored')) unlockedRef.current.push('armored');
-    if (nextWave >= 10 && !unlockedRef.current.includes('boss')) unlockedRef.current.push('boss');
-    spawnRef.current = { left: 5 + nextWave * 2, total: 5 + nextWave * 2 };
+    if (wave >= 4 && !unlockedRef.current.includes('runner')) unlockedRef.current.push('runner');
+    if (wave >= 7 && !unlockedRef.current.includes('armored')) unlockedRef.current.push('armored');
+    if (wave >= 10 && !unlockedRef.current.includes('boss')) unlockedRef.current.push('boss');
+    spawnRef.current = { left: 5 + wave * 2, total: 5 + wave * 2 };
   }
 
   function endWave() {
     setWaveActive(false);
     setModifier(null);
+    setWave((w) => w + 1);
   }
 
   function spawnZombie() {
@@ -140,7 +140,7 @@ export default function CastleDefenders() {
     if (!valid) return;
     const exists = towers.find((t) => t.gx === gx && t.gy === gy);
     if (exists) {
-      const cost = Math.round(exists.cost * 1.5);
+      const cost = Math.max(1, Math.round(exists.cost * 1.5) - 3);
       if (coins >= cost && exists.level < 5) {
         setCoins((c) => c - cost);
         setTowers((ts) =>
@@ -157,23 +157,44 @@ export default function CastleDefenders() {
       }
       return;
     }
-    if (coins < 10) return;
+    if (coins < 7) return;
     const data = towerData[selected];
     const id = nextId();
     setTowers((ts) => [
       ...ts,
-      { id, type: selected, level: 1, gx, gy, x: gx * TILE + TILE / 2, y: gy * TILE + TILE / 2, cooldown: 0, cost: 10, disabled: 0 },
+      { id, type: selected, level: 1, gx, gy, x: gx * TILE + TILE / 2, y: gy * TILE + TILE / 2, cooldown: 0, cost: 7, disabled: 0 },
     ]);
-    setCoins((c) => c - 10);
+    setCoins((c) => c - 7);
   }
 
   function repairCastle() {
-    const cost = 5 + 2 * repairs;
+    const cost = 2 + 2 * repairs;
     if (coins >= cost && castleHP < 100) {
       setCoins((c) => c - cost);
       setCastleHP((h) => Math.min(100, h + 20));
       setRepairs((r) => r + 1);
     }
+  }
+
+  function useSpecialPower() {
+    if (coins < powerCost) return;
+    setCoins((c) => c - powerCost);
+    const level = Math.floor((powerCost + 3) / 30);
+    setZombies((zs) =>
+      zs
+        .map((z) => {
+          z.hp -= level * 50;
+          return z;
+        })
+        .filter((z) => {
+          if (z.hp <= 0) {
+            setCoins((c) => c + wave);
+            return false;
+          }
+          return true;
+        })
+    );
+    setPowerCost((c) => c + 30);
   }
 
   useGameLoop((delta) => {
@@ -316,13 +337,13 @@ export default function CastleDefenders() {
 
   function restart() {
     setCoins(20);
-    setWave(0);
     setCastleHP(100);
     setTowers([]);
     setZombies([]);
     setProjectiles([]);
     setRepairs(0);
     setModifier(null);
+    setPowerCost(27);
     unlockedRef.current = ['walker'];
     setWaveActive(false);
   }
@@ -331,7 +352,7 @@ export default function CastleDefenders() {
   const toggleSpeed = () => setSpeed((s) => (s === 2 ? 1 : 2));
 
   const over = castleHP <= 0;
-  const repairCost = 5 + 2 * repairs;
+  const repairCost = 2 + 2 * repairs;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -339,11 +360,12 @@ export default function CastleDefenders() {
         <div style={{ flex: '0 0 140px', marginRight: 10 }}>
           <h3>Shop</h3>
           {Object.keys(towerData).map((t) => (
-            <button key={t} onClick={() => setSelected(t)} disabled={waveActive || coins < 10} style={{ background: selected === t ? '#ccc' : '' }}>
-              {t} (10c)
+            <button key={t} onClick={() => setSelected(t)} disabled={waveActive || coins < 7} style={{ background: selected === t ? '#ccc' : '' }}>
+              {t} (7c)
             </button>
           ))}
           <button onClick={repairCastle} disabled={coins < repairCost || castleHP >= 100}>Repair {repairCost}c</button>
+          <button onClick={useSpecialPower} disabled={coins < powerCost}>Power {powerCost}c</button>
         </div>
         <canvas
           ref={canvasRef}
