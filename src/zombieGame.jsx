@@ -258,7 +258,7 @@ export default function CastleDefenders() {
               })
               .filter((z) => {
                 if (z.hp <= 0) {
-                  setCoins((c) => c + (z.type === 'boss' ? 10 : 1));
+                  setCoins((c) => c + wave);
                   return false;
                 }
                 return true;
