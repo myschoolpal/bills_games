@@ -73,6 +73,7 @@ export default function CastleDefenders() {
   const [repairs, setRepairs] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [powerOptions, setPowerOptions] = useState(null); // array of power objects
+  const [powerCost, setPowerCost] = useState(30);
 
   const [freeUnit, setFreeUnit] = useState(false);
 
@@ -213,8 +214,9 @@ export default function CastleDefenders() {
   }
 
   function useSpecialPower() {
+    if (coins < powerCost) return;
     const opts = [];
-    while (opts.length < 4) {
+    while (opts.length < 2) {
       const p = powers[Math.floor(Math.random() * powers.length)];
       if (!opts.includes(p)) opts.push(p);
     }
@@ -395,6 +397,7 @@ export default function CastleDefenders() {
     setZHealthMod(1);
     setZSpeedMod(1);
     setFreeUnit(false);
+    setPowerCost(30);
     setPowerOptions(null);
     setWaveActive(false);
   }
@@ -416,7 +419,7 @@ export default function CastleDefenders() {
             </button>
           ))}
           <button onClick={repairCastle} disabled={coins < repairCost || castleHP >= 100}>Repair {repairCost}c</button>
-          <button onClick={useSpecialPower}>Power</button>
+          <button onClick={useSpecialPower} disabled={coins < powerCost}>Power ({powerCost}c)</button>
         </div>
         <canvas
           ref={canvasRef}
@@ -443,7 +446,16 @@ export default function CastleDefenders() {
       {powerOptions && (
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           {powerOptions.map((p) => (
-            <button key={p.name} onClick={() => { p.action(); setPowerOptions(null); }} style={{ margin: 4 }}>
+            <button
+              key={p.name}
+              onClick={() => {
+                p.action();
+                setCoins((c) => c - powerCost);
+                setPowerCost((c) => c + 30);
+                setPowerOptions(null);
+              }}
+              style={{ margin: 4 }}
+            >
               {p.name}
             </button>
           ))}
