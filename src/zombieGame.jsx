@@ -76,6 +76,8 @@ export default function CastleDefenders() {
 
   const [freeUnit, setFreeUnit] = useState(false);
 
+  const unitCost = 7 + 2 * Math.floor((wave - 1) / 3);
+
   const [rangeBonus, setRangeBonus] = useState(0); // squares
   const [fireRateBonus, setFireRateBonus] = useState(0); // percent in decimal
   const [zHealthMod, setZHealthMod] = useState(1);
@@ -178,7 +180,7 @@ export default function CastleDefenders() {
       }
       return;
     }
-    if (!freeUnit && coins < 7) return;
+    if (!freeUnit && coins < unitCost) return;
     const id = nextId();
     setTowers((ts) => [
       ...ts,
@@ -194,12 +196,12 @@ export default function CastleDefenders() {
         targetY: gy * TILE + TILE / 2,
         moving: true,
         cooldown: 0,
-        cost: 7,
+        cost: unitCost,
         disabled: 0,
         hp: TOWER_HP,
       },
     ]);
-    if (!freeUnit) setCoins((c) => c - 7);
+    if (!freeUnit) setCoins((c) => c - unitCost);
     setFreeUnit(false);
   }
 
@@ -411,8 +413,8 @@ export default function CastleDefenders() {
         <div style={{ flex: '0 0 140px', marginRight: 10 }}>
           <h3>Shop</h3>
           {Object.keys(towerData).map((t) => (
-            <button key={t} onClick={() => setSelected(t)} disabled={waveActive || coins < 7} style={{ background: selected === t ? '#ccc' : '' }}>
-              {t} (7c)
+            <button key={t} onClick={() => setSelected(t)} disabled={waveActive || coins < unitCost} style={{ background: selected === t ? '#ccc' : '' }}>
+              {t} ({unitCost}c)
             </button>
           ))}
           <button onClick={repairCastle} disabled={coins < repairCost || castleHP >= 100}>Repair {repairCost}c</button>
