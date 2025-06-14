@@ -11,17 +11,17 @@ const CASTLE_POS = { x: WIDTH / 2, y: HEIGHT / 2 };
 /** Data tables */
 // Increase unit damage so most zombies fall after roughly three hits
 const towerData = {
-  archer: { range: TILE * 2, damage: 10, reload: 60, color: 'green' },
-  cannon: { range: TILE * 2, damage: 20, reload: 80, splash: 30, color: 'orange' },
-  fire: { range: TILE * 2, damage: 10, reload: 90, burn: true, color: 'red' },
-  sniper: { range: TILE * 2, damage: 40, reload: 120, color: 'purple' },
+  archer: { range: TILE * 2, damage: 10, reload: 60, color: 'green', image: "/images/archer.svg" },
+  cannon: { range: TILE * 2, damage: 20, reload: 80, splash: 30, color: 'orange'  , image: '/images/cannon.svg' },
+  fire: { range: TILE * 2, damage: 10, reload: 90, burn: true, color: 'red' , image: '/images/fire.svg' },
+  sniper: { range: TILE * 2, damage: 40, reload: 120, color: 'purple' , image: '/images/sniper.svg' },
 };
 
 const zombieData = {
-  walker: { hp: 30, damage: 5, speed: 20, color: 'lime' },
-  runner: { hp: 20, damage: 5, speed: 40, color: 'yellow' },
-  armored: { hp: 60, damage: 8, speed: 15, armor: 0.5, color: 'blue' },
-  boss: { hp: 200, damage: 20, speed: 10, color: 'black' },
+  walker: { hp: 30, damage: 5, speed: 20, color: 'lime' , image: '/images/walker.svg' },
+  runner: { hp: 20, damage: 5, speed: 40, color: 'yellow' , image: '/images/runner.svg' },
+  armored: { hp: 60, damage: 8, speed: 15, armor: 0.5, color: 'blue' , image: '/images/armored.svg' },
+  boss: { hp: 200, damage: 20, speed: 10, color: 'black' , image: '/images/boss.svg' },
 };
 
 let uid = 0;
@@ -31,6 +31,15 @@ function nextId() {
 }
 
 const TOWER_HP = 200;
+const images = {
+  castle: new Image(),
+  towers: {},
+  zombies: {}
+};
+images.castle.src = "/images/castle.svg";
+Object.keys(towerData).forEach(t => { images.towers[t] = new Image(); images.towers[t].src = towerData[t].image; });
+Object.keys(zombieData).forEach(z => { images.zombies[z] = new Image(); images.zombies[z].src = zombieData[z].image; });
+
 
 function useGameLoop(callback, speedRef) {
   useEffect(() => {
@@ -353,13 +362,22 @@ export default function CastleDefenders() {
       ctx.lineTo(WIDTH, y * TILE);
       ctx.stroke();
     }
-    ctx.fillStyle = '#888';
+    if (images.castle.complete) {
+    ctx.drawImage(images.castle, CASTLE_POS.x - 30, CASTLE_POS.y - 30, 60, 60);
+  } else {
+    ctx.fillStyle = "#888";
     ctx.fillRect(CASTLE_POS.x - 30, CASTLE_POS.y - 30, 60, 60);
+  }
     towers.forEach((t) => {
-      ctx.fillStyle = towerData[t.type].color;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, 15, 0, Math.PI * 2);
-      ctx.fill();
+      const img = images.towers[t.type];
+      if (img && img.complete) {
+        ctx.drawImage(img, t.x - 15, t.y - 15, 30, 30);
+      } else {
+        ctx.fillStyle = towerData[t.type].color;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
       if (t.disabled > 0) {
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.beginPath();
@@ -368,10 +386,15 @@ export default function CastleDefenders() {
       }
     });
     zombies.forEach((z) => {
-      ctx.fillStyle = zombieData[z.type].color;
-      ctx.beginPath();
-      ctx.arc(z.x, z.y, 15, 0, Math.PI * 2);
-      ctx.fill();
+      const img = images.zombies[z.type];
+      if (img && img.complete) {
+        ctx.drawImage(img, z.x - 15, z.y - 15, 30, 30);
+      } else {
+        ctx.fillStyle = zombieData[z.type].color;
+        ctx.beginPath();
+        ctx.arc(z.x, z.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
     });
     projectiles.forEach((p) => {
       ctx.fillStyle = '#fff';
