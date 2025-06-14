@@ -110,6 +110,17 @@ export default function CastleDefenders() {
   const disabledRef = useRef({ id: null, time: 0 });
   const unlockedRef = useRef(['walker']);
 
+  useEffect(() => {
+    if (castleHP <= 0) {
+      setWave(1);
+      setRangeBonus(0);
+      setFireRateBonus(0);
+      setZHealthMod(1);
+      setZSpeedMod(1);
+      unlockedRef.current = ['walker'];
+    }
+  }, [castleHP]);
+
   function startWave() {
     if (waveActive) return;
     setWaveActive(true);
@@ -409,6 +420,7 @@ export default function CastleDefenders() {
   }, speedRef);
 
   function restart() {
+    setWave(1);
     setCoins(20);
     setCastleHP(100);
     setTowers([]);
